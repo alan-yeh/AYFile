@@ -1,0 +1,16 @@
+PODS:
+  - AYFile (1.0.0)
+
+DEPENDENCIES:
+  - AYFile (from `../`)
+
+EXTERNAL SOURCES:
+  AYFile:
+    :path: ../
+
+SPEC CHECKSUMS:
+  AYFile: 66e8881d89cf93b31c81a6a1d5cda2a52d55f644
+
+PODFILE CHECKSUM: 54a1fe2a49003d00629dd6fbea38a04fbcc09017
+
+COCOAPODS: 1.0.0

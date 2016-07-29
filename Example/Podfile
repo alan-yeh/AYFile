@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'AYFile_Example' do
+  pod 'AYFile', :path => '../'
+
+  target 'AYFile_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end

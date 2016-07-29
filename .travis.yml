@@ -1,0 +1,33 @@
+osx_image: xcode7.3
+language: objective-c
+
+branches:
+  only:
+    - master
+
+before_install:
+- git clone https://github.com/alan-yeh/CI.git
+- cp CI/cocoapods/* ./
+- rm -rf CI
+
+install:
+- bundle install
+- pod install --project-directory=Example
+
+script:
+- bundle exec rake pod:lint --quiet
+
+after_success:
+- bundle exec rake pod:tag --quiet
+
+# Generate your secure token with the travis gem:
+# get Github token from your Travis CI profile page
+# gem install travis
+# GH_TOKEN from https://github.com/settings/tokens
+env:
+  global:
+    # travis encrypt 'GH_TOKEN=YOUR_TOKEN'
+    - secure: "gWcdvHy4dLda/bMj+w8QBF9RZFicm5csX2pCia2unQOhxGMjFUlH87lKT2BlYKnZz2IeODft4uCvS8SUrz3Yn3vpUwW4nj0yDp2Au/kFGHOsMCf0zxKAhWn49xgmyZ2sWk8EOIKRce5pBAVhVO0yKze7n8Fhm+xbNnM0c1kXZWdqWY2JkAet1P8Myaxrx+rk3h0zkqNKme1GWeFYk6+HYmra4ehfh91PP9y9aUI6qJwoQ/53T6LS/EBNUkhzcLnV3EC7zqluEKjVl9UXj/QgOx0Rk5Vx7zH9CsXs4kFIuHh9oF2ARNSy0pRciVPfUMFoBUbQAg3lVlSbfajbFUW7jLlQQ8Z7+TzzciRod7BFJsjMryKTmh0DEqGjaqZtNSwnH9+epXgLGq2xDXIxp8H9UitBqsWtcNxOOdsC/QZhIRaCKmn4wVrTl0iXwcAzrocd+BS/Q6+S7n2O34D81Zx17lTbZ+IT3qJvXUL1eao/gJ4rQ7Do/vqjz4sY0AfgLnyZRDhcBJgS9R4qDNNPLT+aZeUU/shbQyGdHyOTFE42pHI3dxm7NYhkUf6WT/k+Woc5WQgWJcT4FJMo3tdcD86rbu+WKMmpCPyDgOEzlh3njfnMmwZ3k4kGRIAyVUcJL45XL/RrDdlt58sPUjqOgTt6PhrwNQssZeG7Ff3VwIfD8aw="
+    #- PROJECT: AYPromise
+    - GH_USER: alan-yeh
+    - GH_EMAIL: alan@yerl.cn
