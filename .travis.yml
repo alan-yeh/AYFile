@@ -9,6 +9,7 @@ before_install:
 - git clone https://github.com/alan-yeh/CI.git
 - cp CI/cocoapods/* ./
 - rm -rf CI
+- rm example.travis.yml
 
 install:
 - bundle install
@@ -27,7 +28,7 @@ after_success:
 env:
   global:
     # travis encrypt 'GH_TOKEN=YOUR_TOKEN'
-    - secure: "gWcdvHy4dLda/bMj+w8QBF9RZFicm5csX2pCia2unQOhxGMjFUlH87lKT2BlYKnZz2IeODft4uCvS8SUrz3Yn3vpUwW4nj0yDp2Au/kFGHOsMCf0zxKAhWn49xgmyZ2sWk8EOIKRce5pBAVhVO0yKze7n8Fhm+xbNnM0c1kXZWdqWY2JkAet1P8Myaxrx+rk3h0zkqNKme1GWeFYk6+HYmra4ehfh91PP9y9aUI6qJwoQ/53T6LS/EBNUkhzcLnV3EC7zqluEKjVl9UXj/QgOx0Rk5Vx7zH9CsXs4kFIuHh9oF2ARNSy0pRciVPfUMFoBUbQAg3lVlSbfajbFUW7jLlQQ8Z7+TzzciRod7BFJsjMryKTmh0DEqGjaqZtNSwnH9+epXgLGq2xDXIxp8H9UitBqsWtcNxOOdsC/QZhIRaCKmn4wVrTl0iXwcAzrocd+BS/Q6+S7n2O34D81Zx17lTbZ+IT3qJvXUL1eao/gJ4rQ7Do/vqjz4sY0AfgLnyZRDhcBJgS9R4qDNNPLT+aZeUU/shbQyGdHyOTFE42pHI3dxm7NYhkUf6WT/k+Woc5WQgWJcT4FJMo3tdcD86rbu+WKMmpCPyDgOEzlh3njfnMmwZ3k4kGRIAyVUcJL45XL/RrDdlt58sPUjqOgTt6PhrwNQssZeG7Ff3VwIfD8aw="
+    - secure: "n9ZL1vTYu4CpRDDmaMbNhz168T2Z5HGj15W81QizQYkeqDej2ZG1DU5muu5Yr/4SsokVHGOis1YGjKsLNK+gZF0BXFmhFA+fHgHoa6AqUnLOigECGxcJQI3yvgxQMSMN1hZa6TwpABwDnpg9NiH9XkIsGn3YQufzzV1fEFZV7B0beN2keWa0C0d8hGT6cIJ5SsKNIqOnIWnv9BnLzqWDIxPffOlUdScW9n52UkDNrYmPAmNfaV4xTXk6htsalTawr0hgYmNcyO015qYqdeLxW5vSd/4SucnPn4nxCuwrtAXppeDPDQVJhGjlCR9YMrXQ/3MhsTTnXgGWztKA5q5+Qis0xHmkyOmqG8ofNgSHuiFjSwO41jnHBpymcqfzceyKOnyENMhhphbHJvmNzE2dv5YjphHRPUxdb9VM7E31+a6HkEqpDx1ZzIA6eGbtlUVengf9LQTYNDMQQ/mLUDcmUFcjv8ZbKsfc58/C3YTdc7ctp3Ir0VnWGD106JOVrzGshIj2gPiJFCxg2iDv05A4ch17KBPkxg2FlRFojRcM1Sg4Owa52v1tP4BT+97etbJraRa1+UhHTuVf2tGCPyG8ODexBax3SzH+zkZreASDrRTHgFlspuV6x7mXTXYI/Cey/IwRxmpWU14JiT8oub1g+fHXXsOkMLOMUd4w5tMLqeQ="
     #- PROJECT: AYPromise
     - GH_USER: alan-yeh
     - GH_EMAIL: alan@yerl.cn
