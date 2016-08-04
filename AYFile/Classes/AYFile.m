@@ -18,16 +18,21 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 }
 
 + (AYFile *)fileWithPath:(NSString *)path{
-    AYFile *file = [[AYFile alloc] initWithPath:path];
-    return file;
+    return [[AYFile alloc] initWithPath:path];
 }
 
 + (AYFile *)fileWithURL:(NSURL *)url{
+    if (url == nil) {
+        return nil;
+    }
     NSParameterAssert([url.scheme isEqualToString:@"file"]);
     return [[AYFile alloc] initWithPath:url.path];
 }
 
 - (instancetype)initWithPath:(NSString *)path{
+    if (path.length < 1) {
+        return nil;
+    }
     if (self = [super init]) {
         _path = [path copy];
         _manager = [NSFileManager new];
