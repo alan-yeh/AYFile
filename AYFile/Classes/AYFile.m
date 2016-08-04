@@ -34,7 +34,7 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
         BOOL success = [_manager changeCurrentDirectoryPath:path];
         if (!success) {
             success = [_manager changeCurrentDirectoryPath:[path stringByDeletingLastPathComponent]];
-            if (success) {
+            if (!success) {
                 NSLog(@"can not open specified path");
                 return nil;
             }
