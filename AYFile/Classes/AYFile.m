@@ -13,11 +13,11 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 
 @interface AYFile ()
 @property (nonatomic, retain) NSFileManager *manager;
-@property (nonatomic, copy) NSString *path;
 @end
 
 @implementation AYFile{
     NSError *_lastError;
+    NSString *_path;
 }
 
 + (AYFile *)fileWithPath:(NSString *)path{

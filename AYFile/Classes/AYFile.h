@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype)initWithPath:(NSString *)path;
 
 #pragma mark - 状态
-@property (nonatomic, readonly) NSString *path;/**< 获取当前文件(夹)的路径. */
+@property (nonatomic, copy, readonly) NSString *path;/**< 获取当前文件(夹)的路径. */
 @property (nonatomic, readonly) NSURL *url;/**< 获取当前文件(夹)的路径 */
 @property (nonatomic, readonly) NSString *name;/**< 获取文件(夹)名 */
 @property (nonatomic, readonly) BOOL isDirectory;/**< 判断当前File是否是目录.*/
