@@ -1,8 +1,8 @@
 //
 //  AYFile.m
-//  Pods
+//  AYFile
 //
-//  Created by PoiSon on 16/7/22.
+//  Created by Alan Yeh on 16/7/22.
 //
 //
 
@@ -11,11 +11,13 @@
 NSString * const AYFileErrorDomain = @"cn.yerl.error.AYFile";
 NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 
-@implementation AYFile{
-    NSFileManager *_manager;
-    NSString *_path;
-    NSError *_lastError;
-}
+@interface AYFile ()
+@property (nonatomic, retain) NSFileManager *manager;
+@property (nonatomic, copy) NSString *path;
+@property (nonatomic, retain) NSError *lastError;
+@end
+
+@implementation AYFile
 
 + (AYFile *)fileWithPath:(NSString *)path{
     return [[AYFile alloc] initWithPath:path];
@@ -36,14 +38,7 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     if (self = [super init]) {
         _path = [path copy];
         _manager = [NSFileManager new];
-        BOOL success = [_manager changeCurrentDirectoryPath:path];
-        if (!success) {
-            success = [_manager changeCurrentDirectoryPath:[path stringByDeletingLastPathComponent]];
-            if (!success) {
-                NSLog(@"can not open specified path");
-                return nil;
-            }
-        }
+        [_manager changeCurrentDirectoryPath:path];
     }
     return self;
 }
@@ -78,7 +73,8 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 - (BOOL)delete{
     NSError *error = nil;
     BOOL result = [_manager removeItemAtPath:_path error:&error];
-    _lastError = error;
+    self.lastError = error;
+    _log_error(self.lastError, _cmd);
     return result;
 }
 
@@ -86,9 +82,10 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     NSError *error = nil;
     BOOL isDirector = self.isDirectory;
     BOOL result = [_manager removeItemAtPath:_path error:&error];
-    _lastError = error;
-    if (_lastError == nil && isDirector) {
-        [self createIfNotExists];
+    self.lastError = error;
+    _log_error(error, _cmd);
+    if (error == nil && isDirector) {
+        [self makeDirs];
     }
     return result;
 }
@@ -123,6 +120,7 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     NSError *error = nil;
     NSArray<NSString *> *directories = [_manager contentsOfDirectoryAtPath:_path error:&error];
     if (error) {
+        
         return nil;
     }
     
@@ -135,7 +133,7 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 }
 
 #pragma mark - 读取与写入
-- (BOOL)createIfNotExists{
+- (BOOL)makeDirs{
     if (self.isExists) {
         return YES;
     }else{
@@ -144,7 +142,9 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
                           withIntermediateDirectories:YES
                                            attributes:nil
                                                 error:&error];
-        _lastError = error;
+        self.lastError = error;
+        _log_error(self.lastError, _cmd);
+        
         return result;
     }
 }
@@ -155,7 +155,7 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 
 - (AYFile *)write:(NSData *)data withName:(NSString *)name{
     NSParameterAssert(data != nil && name != nil && name.length > 0);
-    [self createIfNotExists];
+    [self makeDirs];
     
     NSString *targetFile = [_path stringByAppendingPathComponent:name];
     [data writeToFile:targetFile atomically:YES];
@@ -166,14 +166,16 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     NSParameterAssert(oldFile != nil && newFile != nil && ![oldFile isEqualToFile:newFile]);
     
     if (!oldFile.isExists) {
-        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{AYFileErrorKey: @"oldFile is not exists."}];
+        self.lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{AYFileErrorKey: @"oldFile is not exists."}];
+        _log_error(self.lastError, _cmd);
         return NO;
     }
-    [[newFile parent] createIfNotExists];
+    [[newFile parent] makeDirs];
     
     NSError *error = nil;
     BOOL result = [_manager copyItemAtPath:oldFile.path toPath:newFile.path error:&error];
-    _lastError = error;
+    self.lastError = error;
+    _log_error(self.lastError, _cmd);
     return result;
 }
 
@@ -181,20 +183,17 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     NSParameterAssert(oldFile != nil && newFile != nil && ![oldFile isEqualToFile:newFile]);
     
     if (!oldFile.isExists) {
-        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{AYFileErrorKey: @"oldFile is not exists."}];
+        self.lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{AYFileErrorKey: @"oldFile is not exists."}];
+        _log_error(self.lastError, _cmd);
         return NO;
     }
-    [[newFile parent] createIfNotExists];
+    [[newFile parent] makeDirs];
     
     NSError *error = nil;
     BOOL result = [_manager moveItemAtPath:oldFile.path toPath:newFile.path error:&error];
-    _lastError = error;
+    self.lastError = error;
+    _log_error(self.lastError, _cmd);
     return result;
-}
-
-#pragma mark - 错误
-- (NSError *)lastError{
-    return _lastError;
 }
 
 #pragma mark - orverride
@@ -209,9 +208,16 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 - (BOOL)isEqualToFile:(AYFile *)otherFile{
     return [self.path isEqualToString:otherFile.path];
 }
+
+static void _log_error(NSError *error, SEL selector){
+    if (error) {
+        NSLog(@"\n⚠️⚠️WARNING: \n  An error occured when execute selector [- %@]:\n%@", NSStringFromSelector(selector) , error);
+    }
+}
+
 @end
 
-@implementation AYFile (PSAppDirectory)
+@implementation AYFile (Directory)
 + (AYFile *)home{
     return [AYFile fileWithPath:NSHomeDirectory()];
 }

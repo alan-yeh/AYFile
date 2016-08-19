@@ -26,7 +26,7 @@ pod "AYFile"
    [AYFile documents];
    
    //在Documents目录下创建Users/Caches/Files目录
-   [[[[[AYFile documents] child:@"Users"] child:@"Caches"] child:@"Files"] createIfNotExists];
+   [[[[[AYFile documents] child:@"Users"] child:@"Caches"] child:@"Files"] mkDirs];
    
    //获取Documents/Users/Database/workflows.db文件路径
    //仅仅只是获取路径，尽管Database目录还没有创建
