@@ -38,9 +38,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (BOOL)makeDirs;/**< 创建文件夹(如果不存在的话) */
 
 - (nullable NSData *)data;/**< 读取文件*/
-- (AYFile *)write:(NSData *)data withName:(NSString *)name;/**< 在当前文件夹下写文件. 如果已有文件, 则复盖 */
-- (BOOL)copyFile:(AYFile *)oldFile toPath:(AYFile *)newFile;/**< 复制文件 */
-- (BOOL)moveFile:(AYFile *)oldFile toPath:(AYFile *)newFile;/**< 移动文件 */
+- (AYFile *)write:(NSData *)data withName:(NSString *)name;/**< 在当前文件夹下写文件. 如果已有文件, 则覆盖 */
+- (BOOL)copyToPath:(AYFile *)newFile;/**< 复制文件, 如果newFile已存在, 则覆盖 */
+- (BOOL)moveToPath:(AYFile *)newFile;/**< 移动文件, 如果newFile已存在, 则覆盖 */
 
 #pragma mark - 其它
 @property (nonatomic, readonly) NSError *lastError;/**< 最后一次发生的错误 */

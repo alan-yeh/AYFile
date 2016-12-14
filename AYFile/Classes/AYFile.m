@@ -155,43 +155,55 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 }
 
 - (AYFile *)write:(NSData *)data withName:(NSString *)name{
-    NSParameterAssert(data != nil && name != nil && name.length > 0);
+    NSParameterAssert(name.length > 0);
     [self makeDirs];
+    
+    if (data.length < 1) {
+        data = [NSData data];
+    }
     
     NSString *targetFile = [_path stringByAppendingPathComponent:name];
     [data writeToFile:targetFile atomically:YES];
     return [[AYFile alloc] initWithPath:targetFile];
 }
 
-- (BOOL)copyFile:(AYFile *)oldFile toPath:(AYFile *)newFile{
-    NSParameterAssert(oldFile != nil && newFile != nil && ![oldFile isEqualToFile:newFile]);
+- (BOOL)copyToPath:(AYFile *)newFile{
+    NSParameterAssert(newFile != nil && !self.isDirectory);
+    if ([self isEqualToFile:newFile]) {
+        return YES;
+    }
     
-    if (!oldFile.isExists) {
-        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{AYFileErrorKey: @"oldFile is not exists."}];
+    if (!self.isExists) {
+        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{AYFileErrorKey: [NSString stringWithFormat:@"Source file in path <%@> is not exists.", self.path]}];
         _log_error(_lastError, _cmd);
         return NO;
     }
+    
     [[newFile parent] makeDirs];
     
     NSError *error = nil;
-    BOOL result = [_manager copyItemAtPath:oldFile.path toPath:newFile.path error:&error];
+    BOOL result = [_manager copyItemAtPath:self.path toPath:newFile.path error:&error];
     _lastError = error;
     _log_error(_lastError, _cmd);
     return result;
 }
 
-- (BOOL)moveFile:(AYFile *)oldFile toPath:(AYFile *)newFile{
-    NSParameterAssert(oldFile != nil && newFile != nil && ![oldFile isEqualToFile:newFile]);
+- (BOOL)moveToPath:(AYFile *)newFile{
+    NSParameterAssert(newFile != nil && !self.isDirectory);
     
-    if (!oldFile.isExists) {
-        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{AYFileErrorKey: @"oldFile is not exists."}];
+    if ([self isEqualToFile:newFile]) {
+        return YES;
+    }
+    
+    if (!self.isExists) {
+        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{AYFileErrorKey: [NSString stringWithFormat:@"Source file in path <%@> is not exists.", self.path]}];
         _log_error(_lastError, _cmd);
         return NO;
     }
     [[newFile parent] makeDirs];
     
     NSError *error = nil;
-    BOOL result = [_manager moveItemAtPath:oldFile.path toPath:newFile.path error:&error];
+    BOOL result = [_manager moveItemAtPath:self.path toPath:newFile.path error:&error];
     _lastError = error;
     _log_error(_lastError, _cmd);
     return result;
