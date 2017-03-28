@@ -71,6 +71,11 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     return [_manager fileExistsAtPath:_path isDirectory:nil];
 }
 
+- (BOOL)hasParent{
+    NSString *parentPath = [_path stringByDeletingLastPathComponent];
+    return !([parentPath isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:parentPath].location != NSNotFound);
+}
+
 - (BOOL)delete{
     NSError *error = nil;
     BOOL result = [_manager removeItemAtPath:_path error:&error];
