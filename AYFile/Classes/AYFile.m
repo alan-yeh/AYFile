@@ -109,7 +109,9 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 
 - (AYFile *)parent{
     NSString *parentPath = [_path stringByDeletingLastPathComponent];
-    NSAssert(!(![parentPath isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:parentPath].location != NSNotFound), @"AYFile: path is out of sandbox.\npath: %@", parentPath);
+    if (!([parentPath isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:parentPath].location != NSNotFound)) {
+        return nil;
+    }
     return [AYFile fileWithPath:parentPath];
 }
 

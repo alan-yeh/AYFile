@@ -21,13 +21,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) BOOL isDirectory;/**< 判断当前File是否是目录.*/
 @property (nonatomic, readonly) BOOL isFile;/**< 判断是否是文件. */
 @property (nonatomic, readonly) BOOL isExists;/**< 判断是否存在. */
+@property (nonatomic, readonly) BOOL hasParent;/**< 判断是否还有父目录. */
 @property (nonatomic, readonly) long long size;/**< 计算大小. 注意: 如果是文件夹, 会递归查询大小, 是耗时操作 */
 
 
 
 #pragma mark - 进入/返回文件夹
 - (AYFile *)root;/**< 返回根文件夹 */
-- (nullable AYFile *)parent;/**< 获取父目录 */
+- (nullable AYFile *)parent;/**< 获取父目录, 如果父目录超过沙盒，则返回空 */
 - (AYFile *)child:(NSString *)name;/**< 获取子文件(夹) */
 - (nullable NSArray<AYFile *> *)childs;/**< 获取当前目录下所有文件(夹). 注意: 耗时操作 */
 
