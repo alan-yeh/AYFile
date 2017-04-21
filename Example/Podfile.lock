@@ -1,5 +1,5 @@
 PODS:
-  - AYFile (1.0.7)
+  - AYFile (1.0.9)
 
 DEPENDENCIES:
   - AYFile (from `../`)
@@ -9,7 +9,7 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  AYFile: e8a289bdbdbc426ca5e28bf6aeaf1bec56826dae
+  AYFile: 7a7c641fb61ddc48effd315a5779757b9fea5c32
 
 PODFILE CHECKSUM: 54a1fe2a49003d00629dd6fbea38a04fbcc09017
 

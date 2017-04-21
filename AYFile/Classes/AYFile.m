@@ -114,7 +114,8 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 
 - (AYFile *)parent{
     NSString *parentPath = [_path stringByDeletingLastPathComponent];
-    if (!([parentPath isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:parentPath].location != NSNotFound)) {
+    //判断是否超出沙盒
+    if (![parentPath isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:parentPath].location != NSNotFound) {
         return nil;
     }
     return [AYFile fileWithPath:parentPath];
