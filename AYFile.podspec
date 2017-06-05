@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'AYFile'
-  s.version          = '1.0.9'
+  s.version          = '1.1.0'
   s.summary          = 'File management'
 
   s.homepage         = 'https://github.com/alan-yeh/AYFile'

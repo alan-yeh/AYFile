@@ -13,6 +13,7 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 
 @interface AYFile ()
 @property (nonatomic, retain) NSFileManager *manager;
+@property (nonatomic, retain) NSDictionary *attributes;
 @end
 
 @implementation AYFile{
@@ -82,6 +83,25 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     _lastError = error;
     _log_error(_lastError, _cmd);
     return result;
+    //    if ([self isExists]) {
+    //
+    //        if ([self isDirectory]) {
+    //            NSArray<AYFile *> *children = [self childs];
+    //            if (children.count < 1) {
+    //                self
+    //            }
+    //        }
+    //
+    //        NSError *error = nil;
+    //        BOOL result = [_manager removeItemAtPath:_path error:&error];
+    //        _lastError = error;
+    //        _log_error(_lastError, _cmd);
+    //        return result;
+    //
+    //
+    //    }else{
+    //        return YES;
+    //    }
 }
 
 - (BOOL)clear{
@@ -98,15 +118,31 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 
 - (long long)size{
     if (self.isFile) {
-        return [_manager attributesOfItemAtPath:_path error:nil].fileSize;
+        return self.attributes.fileSize;
     }else{
         long long size =0;
-        for (AYFile *child in self.childs) {
+        for (AYFile *child in self.children) {
             size += child.size;
         }
         return size;
     }
 }
+
+- (NSTimeInterval)modificationDate{
+    return self.attributes.fileModificationDate.timeIntervalSince1970;
+}
+
+- (NSTimeInterval)creationDate{
+    return self.attributes.fileCreationDate.timeIntervalSince1970;
+}
+
+- (nullable NSDictionary<NSFileAttributeKey, id> *)attributes{
+    if (!_attributes) {
+        _attributes = [_manager attributesOfItemAtPath:_path error:nil];
+    }
+    return _attributes;
+}
+
 #pragma mark - 进入/返回文件夹
 - (AYFile *)root{
     return [AYFile home];
@@ -125,7 +161,7 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     return [AYFile fileWithPath:[_path stringByAppendingPathComponent:name]];
 }
 
-- (NSArray<AYFile *> *)childs{
+- (NSArray<AYFile *> *)children{
     NSError *error = nil;
     NSArray<NSString *> *directories = [_manager contentsOfDirectoryAtPath:_path error:&error];
     if (error) {
@@ -176,7 +212,8 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 }
 
 - (BOOL)copyToPath:(AYFile *)newFile{
-    NSParameterAssert(newFile != nil && !self.isDirectory);
+    NSParameterAssert(newFile != nil);
+    
     if ([self isEqualToFile:newFile]) {
         return YES;
     }
@@ -189,31 +226,36 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     
     [[newFile parent] makeDirs];
     
-    NSError *error = nil;
-    BOOL result = [_manager copyItemAtPath:self.path toPath:newFile.path error:&error];
-    _lastError = error;
-    _log_error(_lastError, _cmd);
-    return result;
+    if (self.isDirectory) {
+        NSArray<AYFile *> *children = self.children;
+        BOOL result = YES;
+        if (children.count < 1) {
+            // 如果没有子文件（夹），就直接在目标上创建文件夹就好
+            result = [newFile makeDirs];
+        }else{
+            for (AYFile *file in children) {
+                if (!result) {
+                    return result;
+                }
+                result  = [file copyToPath:[newFile child: file.name]];
+            }
+        }
+        return result;
+    }else{
+        // 移动文件
+        NSError *error = nil;
+        BOOL result = [_manager copyItemAtPath:self.path toPath:newFile.path error:&error];
+        _lastError = error;
+        _log_error(_lastError, _cmd);
+        return result;
+    }
 }
 
 - (BOOL)moveToPath:(AYFile *)newFile{
-    NSParameterAssert(newFile != nil && !self.isDirectory);
-    
-    if ([self isEqualToFile:newFile]) {
-        return YES;
+    BOOL result = [self copyToPath:newFile];
+    if (result) {
+        [self delete];
     }
-    
-    if (!self.isExists) {
-        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{AYFileErrorKey: [NSString stringWithFormat:@"Source file in path <%@> is not exists.", self.path]}];
-        _log_error(_lastError, _cmd);
-        return NO;
-    }
-    [[newFile parent] makeDirs];
-    
-    NSError *error = nil;
-    BOOL result = [_manager moveItemAtPath:self.path toPath:newFile.path error:&error];
-    _lastError = error;
-    _log_error(_lastError, _cmd);
     return result;
 }
 
