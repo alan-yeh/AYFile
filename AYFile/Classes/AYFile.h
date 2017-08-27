@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, copy, readonly) NSString *path;/**< 获取当前文件(夹)的路径. */
 @property (nonatomic, readonly) NSURL *url;/**< 获取当前文件(夹)的路径 */
 @property (nonatomic, readonly) NSString *name;/**< 获取文件(夹)名 */
+@property (nonatomic, readonly) NSString *simpleName;/**< 获取文件(夹)名，没有后缀 */
 @property (nonatomic, readonly) BOOL isDirectory;/**< 判断当前File是否是目录.*/
 @property (nonatomic, readonly) BOOL isFile;/**< 判断是否是文件. */
 @property (nonatomic, readonly) BOOL isExists;/**< 判断是否存在. */

@@ -58,6 +58,10 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     return [self.path lastPathComponent];;
 }
 
+- (NSString *)simpleName{
+    return [[self.path lastPathComponent] stringByDeletingPathExtension];
+}
+
 - (BOOL)isDirectory{
     BOOL isDirectory;
     [_manager fileExistsAtPath:_path isDirectory:&isDirectory];
