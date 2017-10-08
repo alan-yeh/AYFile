@@ -82,42 +82,29 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 }
 
 - (BOOL)delete{
-    NSError *error = nil;
-    BOOL result = [_manager removeItemAtPath:_path error:&error];
-    _lastError = error;
-    _log_error(_lastError, _cmd);
-    return result;
-    //    if ([self isExists]) {
-    //
-    //        if ([self isDirectory]) {
-    //            NSArray<AYFile *> *children = [self childs];
-    //            if (children.count < 1) {
-    //                self
-    //            }
-    //        }
-    //
-    //        NSError *error = nil;
-    //        BOOL result = [_manager removeItemAtPath:_path error:&error];
-    //        _lastError = error;
-    //        _log_error(_lastError, _cmd);
-    //        return result;
-    //
-    //
-    //    }else{
-    //        return YES;
-    //    }
+    if (self.isExists) {
+        NSError *error = nil;
+        BOOL result = [_manager removeItemAtPath:_path error:&error];
+        _lastError = error;
+        _log_error(_lastError, _cmd);
+        return result;
+    }
+    return YES;
 }
 
 - (BOOL)clear{
-    NSError *error = nil;
-    BOOL isDirector = self.isDirectory;
-    BOOL result = [_manager removeItemAtPath:_path error:&error];
-    _lastError = error;
-    _log_error(error, _cmd);
-    if (error == nil && isDirector) {
-        [self makeDirs];
+    if (self.isExists) {
+        NSError *error = nil;
+        BOOL isDirector = self.isDirectory;
+        BOOL result = [_manager removeItemAtPath:_path error:&error];
+        _lastError = error;
+        _log_error(error, _cmd);
+        if (error == nil && isDirector) {
+            [self makeDirs];
+        }
+        return result;
     }
-    return result;
+    return YES;
 }
 
 - (long long)size{
