@@ -1,5 +1,7 @@
 PODS:
-  - AYFile (1.2.0)
+  - AYFile (1.2.0):
+    - SSZipArchive
+  - SSZipArchive (2.1.0)
 
 DEPENDENCIES:
   - AYFile (from `../`)
@@ -9,7 +11,8 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  AYFile: bd603147efe199d32a537aad4bdd320362f72e4a
+  AYFile: 34b0b749c7258167499b7cb4f8791251d0f23bda
+  SSZipArchive: 1e8e53dcb11bca3ded4738958dc49fc467320a14
 
 PODFILE CHECKSUM: 54a1fe2a49003d00629dd6fbea38a04fbcc09017
 

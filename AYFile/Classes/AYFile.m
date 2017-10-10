@@ -8,6 +8,7 @@
 
 #import "AYFile.h"
 #include <CommonCrypto/CommonDigest.h>
+#import <SSZipArchive/SSZipArchive.h>
 
 NSString * const AYFileErrorDomain = @"cn.yerl.error.AYFile";
 NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
@@ -350,6 +351,80 @@ static void _log_error(NSError *error, SEL selector){
     }
 }
 
+@end
+
+@implementation AYFile (Zip)
+- (AYFile *)zip{
+    return [self zipToPath:[[self parent] child:[self.simpleName stringByAppendingPathExtension:@"zip"]] withPassword:nil];
+}
+
+- (AYFile *)zipWithPassword:(NSString *)password{
+    return [self zipToPath:[[self parent] child:[self.simpleName stringByAppendingPathExtension:@"zip"]] withPassword:password];
+}
+
+- (AYFile *)zipToPath:(AYFile *)file{
+    return [self zipToPath:file withPassword:nil];
+}
+
+- (AYFile *)zipToPath:(AYFile *)file withPassword:(NSString *)password{
+    [file.parent makeDirs];
+    
+    if (self.isDirectory) {
+        BOOL res = [SSZipArchive createZipFileAtPath:file.path withContentsOfDirectory:self.path keepParentDirectory:YES withPassword:password];
+        return res ? file : nil;
+    }else {
+        BOOL res = [SSZipArchive createZipFileAtPath:file.path withFilesAtPaths:@[self.path] withPassword:password];
+        return res ? file : nil;
+    }
+}
+
+- (AYFile *)unZip{
+    return [self unZipToPath:[[self parent] child:self.simpleName] withPassword:nil];
+}
+
+- (AYFile *)unZipWithPassword:(NSString *)password{
+    return [self unZipToPath:[[self parent] child:self.simpleName] withPassword:password];
+}
+
+- (AYFile *)unZipToPath:(AYFile *)file{
+    return [self unZipToPath:file withPassword:nil];
+}
+
+- (AYFile *)unZipToPath:(AYFile *)file withPassword:(NSString *)password{\
+    if (!file) {
+        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{
+                                                                                      NSLocalizedDescriptionKey: @"目标文件夹不能为空"
+                                                                                      }];
+        _log_error(_lastError, _cmd);
+        return nil;
+    }
+    
+    if (file.isExists && file.isFile) {
+        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{
+                                                                                      NSLocalizedDescriptionKey: @"只能解压到文件夹"
+                                                                                      }];
+        _log_error(_lastError, _cmd);
+        return nil;
+    }
+    
+    if (!self.isFile || ![self.extension isEqualToString:@"zip"]) {
+        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{
+                                                                                      NSLocalizedDescriptionKey: @"待解压文件不是有效的压缩文件"
+                                                                                      }];
+        _log_error(_lastError, _cmd);
+        return nil;
+    }
+    
+    [file makeDirs];
+    
+    NSError *error;
+    BOOL res = [SSZipArchive unzipFileAtPath:self.path toDestination:file.path overwrite:YES password:password error:&error];
+    
+    _lastError = error;
+    _log_error(error, _cmd);
+
+    return res ? file : nil;
+}
 @end
 
 @implementation AYFile (Directory)

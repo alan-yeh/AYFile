@@ -41,5 +41,70 @@
     
     NSLog(@"%@", file.md5);
 }
+
+- (void)testZip{
+    AYFile *file = [[AYFile home] child:@"test.txt"];
+    [file writeText:@"hello world"];
+    
+    AYFile *zip = [file zip];
+    
+    XCTAssert(zip.isExists);
+    [zip delete];
+    [file delete];
+}
+
+- (void)testZip2{
+    AYFile *file = [[AYFile home] child:@"test.txt"];
+    [file writeText:@"hello world"];
+    
+    AYFile *zip = [file zipWithPassword:@"123456"];
+    
+    XCTAssert(zip.isExists);
+    [zip delete];
+    [file delete];
+}
+
+- (void)testZipFolder{
+    AYFile *zip = [[AYFile tmp] zip];
+    
+    XCTAssert(zip.isExists);
+}
+
+- (void)testUnZipFolder{
+    AYFile *zip = [[AYFile tmp] zip];
+    [zip unZip];
+}
+
+- (void)testUnZip{
+    AYFile *file = [[AYFile home] child:@"test.txt"];
+    [file writeText:@"hello world"];
+    
+    AYFile *zip = [file zip];
+    
+    AYFile *unZip = [zip unZip];
+    XCTAssert(unZip.isDirectory);
+}
+
+- (void)testUnZip2{
+    AYFile *file = [[AYFile home] child:@"test.txt"];
+    [file writeText:@"hello world"];
+    
+    AYFile *zip = [file zipWithPassword:@"123456"];
+    
+    AYFile *unZip = [zip unZipWithPassword:@"123456"];
+    
+    XCTAssert(unZip.isDirectory);
+}
+
+- (void)testUnZip3{
+    AYFile *file = [[AYFile home] child:@"test.txt"];
+    [file writeText:@"hello world"];
+    
+    AYFile *zip = [file zip];
+    [file delete];
+    
+    [zip unZipToPath:zip.parent];
+    XCTAssert(file.isExists);
+}
 @end
 

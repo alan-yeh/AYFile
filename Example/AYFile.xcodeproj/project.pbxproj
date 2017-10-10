@@ -371,10 +371,12 @@
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-AYFile_Example/Pods-AYFile_Example-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/AYFile/AYFile.framework",
+				"${BUILT_PRODUCTS_DIR}/SSZipArchive/SSZipArchive.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/AYFile.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SSZipArchive.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

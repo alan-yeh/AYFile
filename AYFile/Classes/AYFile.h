@@ -59,8 +59,18 @@ NS_ASSUME_NONNULL_BEGIN
 
 #pragma mark - 其它
 @property (nonatomic, readonly) NSError *lastError;/**< 最后一次发生的错误 */
-
 - (BOOL)isEqualToFile:(AYFile *)otherFile;
+@end
+
+@interface AYFile(Zip)
+- (AYFile *)zip; /**< 压缩到当前路径，新建一个与压缩文件(夹)同名的zip文件 */
+- (AYFile *)zipWithPassword:(nullable NSString *)password; /**< 使用密码进行压缩文件 */
+- (AYFile *)zipToPath:(AYFile *)file; /**< 压缩到指定路径 */
+- (AYFile *)zipToPath:(AYFile *)file withPassword:(nullable NSString *)password; /**< 压缩到指定路径，使用密码进行压缩 */
+- (AYFile *)unZip; /**< 解压缩到当前路径，新建一个与压缩文件同名的文件夹 */
+- (AYFile *)unZipWithPassword:(nullable NSString *)password; /**< 使用密码进行解压 */
+- (AYFile *)unZipToPath:(AYFile *)file; /**< 解压到指定路径 */
+- (AYFile *)unZipToPath:(AYFile *)file withPassword:(nullable NSString *)password; /**< 解压到指定路径，使用密码进行解压 */
 @end
 
 @interface AYFile (Directory)
