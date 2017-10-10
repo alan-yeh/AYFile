@@ -19,10 +19,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) NSURL *url;/**< 获取当前文件(夹)的路径 */
 @property (nonatomic, readonly) NSString *name;/**< 获取文件(夹)名 */
 @property (nonatomic, readonly) NSString *simpleName;/**< 获取文件(夹)名，没有后缀 */
-@property (nonatomic, readonly) BOOL isDirectory;/**< 判断当前File是否是目录.*/
-@property (nonatomic, readonly) BOOL isFile;/**< 判断是否是文件. */
-@property (nonatomic, readonly) BOOL isExists;/**< 判断是否存在. */
-@property (nonatomic, readonly) BOOL hasParent;/**< 判断是否还有父目录. */
+@property (nonatomic, readonly) NSString *extension; /**< 获取文件后缀名 */
+@property (nonatomic, readonly) BOOL isDirectory;/**< 判断是否是目录 */
+@property (nonatomic, readonly) BOOL isFile;/**< 判断是否是文件 */
+@property (nonatomic, readonly) BOOL isExists;/**< 判断是否存在 */
+@property (nonatomic, readonly) BOOL hasParent;/**< 判断是否还有父目录 */
+@property (nonatomic, readonly) NSString *md5;/**< 获取文件MD5值，如果此File是文件夹，则返回nil，耗时操作 */
 
 @property (nonatomic, readonly, nullable) NSDictionary *attributes; /**< 文件属性 */
 @property (nonatomic, readonly) long long size;/**< 计算大小. 注意: 如果是文件夹, 会递归查询大小, 是耗时操作 */
@@ -42,7 +44,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (BOOL)makeDirs;/**< 创建文件夹(如果不存在的话) */
 
-- (nullable NSData *)data;/**< 读取文件*/
+- (nullable NSData *)data; /**< 读取文件*/
+- (nullable NSString *)text; /**< 使用UTF-8编码读取文件 */
+- (nullable NSString *)textWithEncoding:(NSStringEncoding)encoding; /**< 读取文件 */
+- (void)writeData:(NSData *)data; /**< 写入数据，如果当前文件有数据，直接覆盖 */
+- (void)writeText:(NSString *)text; /**< 向文件写入文本，默认使用UTF-8编码，如果当前文件存在，直接覆盖 */
+- (void)writeText:(NSString *)text withEncoding:(NSStringEncoding)encoding; /**< 向文件写入文本，如果当前文件存在，直接覆盖 */
+- (void)appendData:(NSData *)data; /**< 写入数据，如果当前文件有数据，直接追加 */
+- (void)appendText:(NSString *)text; /**< 向文件追加文本，使用UTF-8编码 */
+- (void)appendText:(NSString *)text withEncoding:(NSStringEncoding)encoding; /**< 向文件追加文本 */
 - (AYFile *)write:(NSData *)data withName:(NSString *)name;/**< 在当前文件夹下写文件. 如果已有文件, 则覆盖 */
 - (BOOL)copyToPath:(AYFile *)newFile;/**< 复制文件, 如果newFile已存在, 则覆盖 */
 - (BOOL)moveToPath:(AYFile *)newFile;/**< 移动文件, 如果newFile已存在, 则覆盖 */

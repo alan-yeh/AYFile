@@ -7,6 +7,7 @@
 //
 
 #import "AYFile.h"
+#include <CommonCrypto/CommonDigest.h>
 
 NSString * const AYFileErrorDomain = @"cn.yerl.error.AYFile";
 NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
@@ -29,7 +30,10 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     if (url == nil) {
         return nil;
     }
-    NSParameterAssert([url.scheme isEqualToString:@"file"]);
+    // 不支持非file://协议的URL
+    if (![url.scheme isEqualToString:@"file"]) {
+        return nil;
+    }
     return [[AYFile alloc] initWithPath:url.path];
 }
 
@@ -38,7 +42,11 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
         return nil;
     }
     if (self = [super init]) {
-        _path = [path copy];
+        _path = [path stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+        // 超出沙盒的路径不支持
+        if (![_path isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:_path].location != NSNotFound) {
+            return nil;
+        }
         _manager = [NSFileManager new];
         [_manager changeCurrentDirectoryPath:path];
     }
@@ -62,6 +70,10 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     return [[self.path lastPathComponent] stringByDeletingPathExtension];
 }
 
+- (NSString *)extension{
+    return [[self.path lastPathComponent] pathExtension];
+}
+
 - (BOOL)isDirectory{
     BOOL isDirectory;
     [_manager fileExistsAtPath:_path isDirectory:&isDirectory];
@@ -79,6 +91,35 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 - (BOOL)hasParent{
     NSString *parentPath = [_path stringByDeletingLastPathComponent];
     return !([parentPath isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:parentPath].location != NSNotFound);
+}
+
+- (NSString *)md5{
+    if (!self.isExists) {
+        return nil;
+    }
+    if (self.isDirectory) {
+        return nil;
+    }
+    
+    NSFileHandle *handle = [NSFileHandle fileHandleForReadingAtPath:self.path];
+    
+    CC_MD5_CTX MD5_CTX;
+    CC_MD5_Init(&MD5_CTX);
+    
+    BOOL done = NO;
+    while (!done) {
+        NSData *fileData = [handle readDataOfLength:1024];
+        CC_MD5_Update(&MD5_CTX, fileData.bytes, (uint32_t)fileData.length);
+        done = fileData.length < 1024;
+    }
+    
+    unsigned char digest[CC_MD5_DIGEST_LENGTH];
+    CC_MD5_Final(digest, &MD5_CTX);
+    NSMutableString *result = [NSMutableString new];
+    for (int i = 0; i < CC_MD5_DIGEST_LENGTH; i ++) {
+        [result appendFormat:@"%02x", digest[i]];
+    }
+    return result.copy;
 }
 
 - (BOOL)delete{
@@ -189,17 +230,57 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     return [NSData dataWithContentsOfFile:_path];
 }
 
+- (NSString *)text{
+    return [NSString stringWithContentsOfFile:self.path encoding:NSUTF8StringEncoding error:nil];
+}
+
+- (NSString *)textWithEncoding:(NSStringEncoding)encoding{
+    return [NSString stringWithContentsOfFile:self.path encoding:encoding error:nil];
+}
+
+- (void)writeData:(NSData *)data{
+    if (self.isExists) {
+        [self delete];
+    }
+    [data writeToFile:self.path atomically:YES];
+}
+
+- (void)writeText:(NSString *)text{
+    [self writeData:[text dataUsingEncoding:NSUTF8StringEncoding]];
+}
+
+- (void)writeText:(NSString *)text withEncoding:(NSStringEncoding)encoding{
+    [self writeData:[text dataUsingEncoding:encoding]];
+}
+
+- (void)appendData:(NSData *)data{
+    if (!self.isExists) {
+        [self writeData:data];
+    }else{
+        NSFileHandle *handle = [NSFileHandle fileHandleForUpdatingAtPath:self.path];
+        [handle seekToEndOfFile];
+        [handle writeData:data];
+        [handle closeFile];
+    }
+}
+
+- (void)appendText:(NSString *)text{
+    [self appendData:[text dataUsingEncoding:NSUTF8StringEncoding]];
+}
+
+- (void)appendText:(NSString *)text withEncoding:(NSStringEncoding)encoding{
+    [self appendData:[text dataUsingEncoding:encoding]];
+}
+
 - (AYFile *)write:(NSData *)data withName:(NSString *)name{
     NSParameterAssert(name.length > 0);
     [self makeDirs];
     
-    if (data.length < 1) {
-        data = [NSData data];
-    }
+    data = data ?: [NSData data];
     
-    NSString *targetFile = [_path stringByAppendingPathComponent:name];
-    [data writeToFile:targetFile atomically:YES];
-    return [[AYFile alloc] initWithPath:targetFile];
+    AYFile *target = [self child:name];
+    [data writeToFile:target.path atomically:YES];
+    return target;
 }
 
 - (BOOL)copyToPath:(AYFile *)newFile{
