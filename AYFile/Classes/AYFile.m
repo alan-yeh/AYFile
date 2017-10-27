@@ -198,7 +198,6 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     NSError *error = nil;
     NSArray<NSString *> *directories = [_manager contentsOfDirectoryAtPath:_path error:&error];
     if (error) {
-        
         return nil;
     }
     
@@ -282,6 +281,10 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     AYFile *target = [self child:name];
     [data writeToFile:target.path atomically:YES];
     return target;
+}
+
+- (AYFile *)write:(NSData *)data withName:(NSString *)name andExtension:(NSString *)ext{
+    return [self write:data withName:[name stringByAppendingPathExtension:ext]];
 }
 
 - (BOOL)copyToPath:(AYFile *)newFile{

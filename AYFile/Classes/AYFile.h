@@ -54,6 +54,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)appendText:(NSString *)text; /**< 向文件追加文本，使用UTF-8编码 */
 - (void)appendText:(NSString *)text withEncoding:(NSStringEncoding)encoding; /**< 向文件追加文本 */
 - (AYFile *)write:(NSData *)data withName:(NSString *)name;/**< 在当前文件夹下写文件. 如果已有文件, 则覆盖 */
+- (AYFile *)write:(NSData *)data withName:(NSString *)name andExtension:(NSString *)ext; /**< 在当前文件夹写文件.如果已有文件，则覆盖。extension：后缀名 */
 - (BOOL)copyToPath:(AYFile *)newFile;/**< 复制文件, 如果newFile已存在, 则覆盖 */
 - (BOOL)moveToPath:(AYFile *)newFile;/**< 移动文件, 如果newFile已存在, 则覆盖 */
 
