@@ -10,16 +10,13 @@
 #include <CommonCrypto/CommonDigest.h>
 #import <SSZipArchive/SSZipArchive.h>
 
-NSString * const AYFileErrorDomain = @"cn.yerl.error.AYFile";
-NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
+NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
 
 @interface AYFile ()
 @property (nonatomic, retain) NSFileManager *manager;
-@property (nonatomic, retain) NSDictionary *attributes;
 @end
 
 @implementation AYFile{
-    NSError *_lastError;
     NSString *_path;
 }
 
@@ -77,12 +74,14 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 
 - (BOOL)isDirectory{
     BOOL isDirectory;
-    [_manager fileExistsAtPath:_path isDirectory:&isDirectory];
-    return isDirectory;
+    BOOL isExists = [_manager fileExistsAtPath:_path isDirectory:&isDirectory];
+    return isDirectory && isExists;
 }
 
 - (BOOL)isFile{
-    return !self.isDirectory;
+    BOOL isDirectory;
+    BOOL isExists = [_manager fileExistsAtPath:_path isDirectory:&isDirectory];
+    return !isDirectory && isExists;
 }
 
 - (BOOL)isExists{
@@ -123,13 +122,66 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     return result.copy;
 }
 
+- (BOOL)isImmutable{
+    return [self.attributes fileIsImmutable];
+}
+
+- (BOOL)isReadable{
+    return [_manager isReadableFileAtPath:self.path];
+}
+
+- (BOOL)isWritable{
+    return [_manager isWritableFileAtPath:self.path];
+}
+
+- (BOOL)isExecutable{
+    return [_manager isExecutableFileAtPath:self.path];
+}
+
+- (BOOL)isDeletable{
+    return [_manager isDeletableFileAtPath:self.path];
+}
+
+- (nullable NSDictionary<NSFileAttributeKey, id> *)attributes{
+    NSError *error = nil;
+    @try{
+        return [_manager attributesOfItemAtPath:_path error:&error];
+    }@finally{
+        if (error) {
+            @throw error;
+        }
+    }
+}
+
+- (void)setAttributes:(NSDictionary<NSFileAttributeKey,id> *)attributes{
+    NSError *error = nil;
+    @try{
+        [_manager setAttributes:attributes ofItemAtPath:self.path error:nil];
+    }@finally{
+        if (error) {
+            @throw error;
+        }
+    }
+}
+
+- (NSTimeInterval)modificationDate{
+    return self.attributes.fileModificationDate.timeIntervalSince1970;
+}
+
+- (NSTimeInterval)creationDate{
+    return self.attributes.fileCreationDate.timeIntervalSince1970;
+}
+
 - (BOOL)delete{
     if (self.isExists) {
         NSError *error = nil;
-        BOOL result = [_manager removeItemAtPath:_path error:&error];
-        _lastError = error;
-        _log_error(_lastError, _cmd);
-        return result;
+        @try{
+            return [_manager removeItemAtPath:_path error:&error];
+        }@finally{
+            if (error) {
+                @throw error;
+            }
+        }
     }
     return YES;
 }
@@ -137,14 +189,18 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 - (BOOL)clear{
     if (self.isExists) {
         NSError *error = nil;
-        BOOL isDirector = self.isDirectory;
-        BOOL result = [_manager removeItemAtPath:_path error:&error];
-        _lastError = error;
-        _log_error(error, _cmd);
-        if (error == nil && isDirector) {
-            [self makeDirs];
+        @try{
+            BOOL isDirector = self.isDirectory;
+            BOOL result = [_manager removeItemAtPath:_path error:&error];
+            if (result && isDirector) {
+                [self makeDirs];
+            }
+            return result;
+        }@finally{
+            if (error) {
+                @throw error;
+            }
         }
-        return result;
     }
     return YES;
 }
@@ -159,21 +215,6 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
         }
         return size;
     }
-}
-
-- (NSTimeInterval)modificationDate{
-    return self.attributes.fileModificationDate.timeIntervalSince1970;
-}
-
-- (NSTimeInterval)creationDate{
-    return self.attributes.fileCreationDate.timeIntervalSince1970;
-}
-
-- (nullable NSDictionary<NSFileAttributeKey, id> *)attributes{
-    if (!_attributes) {
-        _attributes = [_manager attributesOfItemAtPath:_path error:nil];
-    }
-    return _attributes;
 }
 
 #pragma mark - 进入/返回文件夹
@@ -198,7 +239,7 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     NSError *error = nil;
     NSArray<NSString *> *directories = [_manager contentsOfDirectoryAtPath:_path error:&error];
     if (error) {
-        return nil;
+        @throw error;
     }
     
     NSMutableArray<AYFile *> *files = [NSMutableArray new];
@@ -215,14 +256,16 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
         return YES;
     }else{
         NSError *error = nil;
-        BOOL result = [_manager createDirectoryAtPath:_path
-                          withIntermediateDirectories:YES
-                                           attributes:nil
-                                                error:&error];
-        _lastError = error;
-        _log_error(_lastError, _cmd);
-        
-        return result;
+        @try{
+            return [_manager createDirectoryAtPath:_path
+                       withIntermediateDirectories:YES
+                                        attributes:nil
+                                             error:&error];
+        }@finally{
+            if (error) {
+                @throw error;
+            }
+        }
     }
 }
 
@@ -231,11 +274,18 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
 }
 
 - (NSString *)text{
-    return [NSString stringWithContentsOfFile:self.path encoding:NSUTF8StringEncoding error:nil];
+    return [self textWithEncoding:NSUTF8StringEncoding];
 }
 
 - (NSString *)textWithEncoding:(NSStringEncoding)encoding{
-    return [NSString stringWithContentsOfFile:self.path encoding:encoding error:nil];
+    NSError *error;
+    @try{
+        return [NSString stringWithContentsOfFile:self.path encoding:encoding error:&error];
+    }@finally{
+        if (error) {
+            @throw error;
+        }
+    }
 }
 
 - (void)writeData:(NSData *)data{
@@ -283,21 +333,25 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     return target;
 }
 
-- (AYFile *)write:(NSData *)data withName:(NSString *)name andExtension:(NSString *)ext{
-    return [self write:data withName:[name stringByAppendingPathExtension:ext]];
+- (AYFile *)write:(NSData *)data withName:(NSString *)simpleName andExtension:(NSString *)ext{
+    return [self write:data withName:[simpleName stringByAppendingPathExtension:ext]];
 }
 
 - (BOOL)copyToPath:(AYFile *)newFile{
-    NSParameterAssert(newFile != nil);
-    
     if ([self isEqualToFile:newFile]) {
         return YES;
     }
     
+    if (!newFile) {
+        @throw [NSError errorWithDomain:@"AYFile" code:-999 userInfo:@{
+                                                                       NSLocalizedDescriptionKey: @"参数不能为空"
+                                                                       }];
+    }
     if (!self.isExists) {
-        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{AYFileErrorKey: [NSString stringWithFormat:@"Source file in path <%@> is not exists.", self.path]}];
-        _log_error(_lastError, _cmd);
-        return NO;
+        @throw [NSError errorWithDomain:@"AYFile" code:-999 userInfo:@{
+                                                                       NSLocalizedDescriptionKey: @"源文件不存在",
+                                                                       AYFileErrorPathKey: self.path
+                                                                       }];
     }
     
     [[newFile parent] makeDirs];
@@ -320,10 +374,13 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     }else{
         // 移动文件
         NSError *error = nil;
-        BOOL result = [_manager copyItemAtPath:self.path toPath:newFile.path error:&error];
-        _lastError = error;
-        _log_error(_lastError, _cmd);
-        return result;
+        @try{
+            return [_manager copyItemAtPath:self.path toPath:newFile.path error:&error];
+        }@finally{
+            if (error) {
+                @throw error;
+            }
+        }
     }
 }
 
@@ -348,10 +405,8 @@ NSString * const AYFileErrorKey = @"cn.yerl.error.AYFile.error.key";
     return [self.path isEqualToString:otherFile.path];
 }
 
-static void _log_error(NSError *error, SEL selector){
-    if (error) {
-        NSLog(@"\n⚠️⚠️WARNING: \n  An error occured when execute selector [- %@]:\n%@", NSStringFromSelector(selector) , error);
-    }
+- (BOOL)isContentEqualToFile:(AYFile *)anotherFile{
+    return [_manager contentsEqualAtPath:self.path andPath:anotherFile.path];
 }
 
 @end
@@ -393,40 +448,36 @@ static void _log_error(NSError *error, SEL selector){
     return [self unZipToPath:file withPassword:nil];
 }
 
-- (AYFile *)unZipToPath:(AYFile *)file withPassword:(NSString *)password{\
+- (AYFile *)unZipToPath:(AYFile *)file withPassword:(NSString *)password{
     if (!file) {
-        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{
-                                                                                      NSLocalizedDescriptionKey: @"目标文件夹不能为空"
-                                                                                      }];
-        _log_error(_lastError, _cmd);
-        return nil;
+        @throw [NSError errorWithDomain:@"AYFile" code:-1001 userInfo:@{
+                                                                        NSLocalizedDescriptionKey: @"参数不能为空"
+                                                                        }];
     }
     
     if (file.isExists && file.isFile) {
-        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{
-                                                                                      NSLocalizedDescriptionKey: @"只能解压到文件夹"
-                                                                                      }];
-        _log_error(_lastError, _cmd);
-        return nil;
+        @throw [NSError errorWithDomain:@"AYFile" code:-1001 userInfo:@{
+                                                                        NSLocalizedDescriptionKey: @"目标文件已存在",
+                                                                        AYFileErrorPathKey: file.path
+                                                                        }];
     }
     
     if (!self.isFile || ![self.extension isEqualToString:@"zip"]) {
-        _lastError = [NSError errorWithDomain:AYFileErrorDomain code:-1001 userInfo:@{
-                                                                                      NSLocalizedDescriptionKey: @"待解压文件不是有效的压缩文件"
-                                                                                      }];
-        _log_error(_lastError, _cmd);
-        return nil;
+        @throw [NSError errorWithDomain:@"AYFile" code:-1001 userInfo:@{
+                                                                        NSLocalizedDescriptionKey: @"是有效的压缩文件",
+                                                                        AYFileErrorPathKey: file.path
+                                                                        }];
     }
     
     [file makeDirs];
     
     NSError *error;
-    BOOL res = [SSZipArchive unzipFileAtPath:self.path toDestination:file.path overwrite:YES password:password error:&error];
-    
-    _lastError = error;
-    _log_error(error, _cmd);
-
-    return res ? file : nil;
+    @try{
+        BOOL res = [SSZipArchive unzipFileAtPath:self.path toDestination:file.path overwrite:YES password:password error:&error];
+        return res ? file : nil;
+    }@finally{
+        @throw error;
+    }
 }
 @end
 
@@ -451,3 +502,5 @@ static void _log_error(NSError *error, SEL selector){
     return [AYFile fileWithPath:NSTemporaryDirectory()];
 }
 @end
+
+

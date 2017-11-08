@@ -9,6 +9,9 @@
 #import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
+
+FOUNDATION_EXPORT NSString *const AYFileErrorPathKey;
+
 @interface AYFile : NSObject
 + (AYFile *)fileWithPath:(NSString *)path;
 + (AYFile *)fileWithURL:(NSURL *)url;
@@ -26,7 +29,14 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, readonly) BOOL hasParent;/**< 判断是否还有父目录 */
 @property (nonatomic, readonly) NSString *md5;/**< 获取文件MD5值，如果此File是文件夹，则返回nil，耗时操作 */
 
-@property (nonatomic, readonly, nullable) NSDictionary *attributes; /**< 文件属性 */
+#pragma mark - 权限
+@property (nonatomic, readonly) BOOL isImmutable; /**< 是否可变的 */
+@property (nonatomic, readonly) BOOL isReadable;/**< 是否可读 */
+@property (nonatomic, readonly) BOOL isWritable;/** 是否可写 */
+@property (nonatomic, readonly) BOOL isExecutable;/**< 是否可执行 */
+@property (nonatomic, readonly) BOOL isDeletable;/**< 是否可删除 */
+
+@property (nonatomic, nullable) NSDictionary<NSFileAttributeKey, id> *attributes; /**< 文件属性 */
 @property (nonatomic, readonly) long long size;/**< 计算大小. 注意: 如果是文件夹, 会递归查询大小, 是耗时操作 */
 @property (nonatomic, readonly) NSTimeInterval modificationDate; /**< 修改日期 */
 @property (nonatomic, readonly) NSTimeInterval creationDate; /**< 修改日期 */
@@ -54,13 +64,14 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)appendText:(NSString *)text; /**< 向文件追加文本，使用UTF-8编码 */
 - (void)appendText:(NSString *)text withEncoding:(NSStringEncoding)encoding; /**< 向文件追加文本 */
 - (AYFile *)write:(NSData *)data withName:(NSString *)name;/**< 在当前文件夹下写文件. 如果已有文件, 则覆盖 */
-- (AYFile *)write:(NSData *)data withName:(NSString *)name andExtension:(NSString *)ext; /**< 在当前文件夹写文件.如果已有文件，则覆盖。extension：后缀名 */
+- (AYFile *)write:(NSData *)data withName:(NSString *)simpleName andExtension:(NSString *)ext; /**< 在当前文件夹写文件.如果已有文件，则覆盖。extension：后缀名 */
 - (BOOL)copyToPath:(AYFile *)newFile;/**< 复制文件, 如果newFile已存在, 则覆盖 */
 - (BOOL)moveToPath:(AYFile *)newFile;/**< 移动文件, 如果newFile已存在, 则覆盖 */
 
 #pragma mark - 其它
 @property (nonatomic, readonly) NSError *lastError;/**< 最后一次发生的错误 */
-- (BOOL)isEqualToFile:(AYFile *)otherFile;
+- (BOOL)isEqualToFile:(AYFile *)otherFile; /**< 判断两个文件的路径是否相同 */
+- (BOOL)isContentEqualToFile:(AYFile *)anotherFile; /**< 判断两个文件的内容是否相同 */
 @end
 
 @interface AYFile(Zip)
@@ -81,3 +92,5 @@ NS_ASSUME_NONNULL_BEGIN
 + (AYFile *)tmp;/**< 获取tmp目录, 应用退出时清空 */
 @end
 NS_ASSUME_NONNULL_END
+
+
