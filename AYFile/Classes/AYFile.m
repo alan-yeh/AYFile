@@ -43,7 +43,12 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
         _path = [path stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
         // 超出沙盒的路径不支持
         if (![_path isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:_path].location != NSNotFound) {
-            return nil;
+            @throw [NSError errorWithDomain:@"AYFile"
+                                       code:NSFileReadNoPermissionError
+                                   userInfo:@{
+                                              NSLocalizedDescriptionKey: @"没有权限访问目录",
+                                              AYFileErrorPathKey: path
+                                              }];
         }
         _manager = [NSFileManager new];
         [_manager changeCurrentDirectoryPath:path];
@@ -226,6 +231,12 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
     NSString *parentPath = [_path stringByDeletingLastPathComponent];
     //判断是否超出沙盒
     if (![parentPath isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:parentPath].location != NSNotFound) {
+        @throw [NSError errorWithDomain:@"AYFile"
+                                   code:NSFileReadNoPermissionError
+                               userInfo:@{
+                                          NSLocalizedDescriptionKey: @"没有权限访问目录",
+                                          AYFileErrorPathKey: parentPath
+                                          }];
         return nil;
     }
     return [AYFile fileWithPath:parentPath];
@@ -248,6 +259,10 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
     }];
     
     return files;
+}
+
+- (BOOL)isChildOf:(AYFile *)parent{
+    return ![parent.path isEqualToString:self.path] && [self.path hasPrefix:self.path];
 }
 
 #pragma mark - 读取与写入
@@ -338,20 +353,33 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
 }
 
 - (BOOL)copyToPath:(AYFile *)newFile{
+    if (!newFile) {
+        @throw [NSError errorWithDomain:@"AYFile"
+                                   code:-999
+                               userInfo:@{
+                                          NSLocalizedDescriptionKey: @"参数不能为空"
+                                          }];
+    }
+    
     if ([self isEqualToFile:newFile]) {
         return YES;
     }
     
-    if (!newFile) {
-        @throw [NSError errorWithDomain:@"AYFile" code:-999 userInfo:@{
-                                                                       NSLocalizedDescriptionKey: @"参数不能为空"
-                                                                       }];
-    }
     if (!self.isExists) {
-        @throw [NSError errorWithDomain:@"AYFile" code:-999 userInfo:@{
-                                                                       NSLocalizedDescriptionKey: @"源文件不存在",
-                                                                       AYFileErrorPathKey: self.path
-                                                                       }];
+        @throw [NSError errorWithDomain:@"AYFile"
+                                   code:NSFileNoSuchFileError
+                               userInfo:@{
+                                          NSLocalizedDescriptionKey: @"源文件不存在",
+                                          AYFileErrorPathKey: self.path
+                                          }];
+    }
+    if ([newFile.parent isEqualToFile:[AYFile home]]) {
+        @throw [NSError errorWithDomain:@"AYFile"
+                                   code:NSFileWriteNoPermissionError
+                               userInfo:@{
+                                          NSLocalizedDescriptionKey: @"没有权限写入数据",
+                                          AYFileErrorPathKey: newFile.path
+                                          }];
     }
     
     [[newFile parent] makeDirs];
@@ -412,6 +440,40 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
 @end
 
 @implementation AYFile (Zip)
+
++ (AYFile *)zipFiles:(NSArray<AYFile *> *)files to:(AYFile *)path{
+    return [self zipFiles:files to:path withPassword:nil];
+}
+
++ (AYFile *)zipFiles:(NSArray<AYFile *> *)files to:(AYFile *)path withPassword:(NSString *)password{
+    if ([path isExists]) {
+        @throw [NSError errorWithDomain:@"AYFile"
+                                   code:NSFileWriteInvalidFileNameError
+                               userInfo:@{
+                                          NSLocalizedDescriptionKey: @"文件已存在"
+                                          }];
+    }
+    // 压缩多个文件的时候，先创建一个容器，再将所有文件复制到容器下，最后进行压缩
+    AYFile *zipContainer = nil;
+    if ([path isChildOf:[AYFile tmp]]) {
+        zipContainer = [[[AYFile caches] child:[NSUUID UUID].UUIDString] child:path.simpleName];
+    }else{
+        zipContainer = [[[AYFile tmp] child:[NSUUID UUID].UUIDString] child:path.simpleName];
+    }
+    
+    [zipContainer makeDirs];
+    
+    for (AYFile *file in files) {
+        [file copyToPath:[zipContainer child:file.name]];
+    }
+    
+    AYFile *file = [zipContainer zipToPath:path];
+    // 压缩完了之后，将临时文件删除
+    [zipContainer.parent delete];
+    return file;
+}
+
+
 - (AYFile *)zip{
     return [self zipToPath:[[self parent] child:[self.simpleName stringByAppendingPathExtension:@"zip"]] withPassword:nil];
 }
@@ -450,23 +512,38 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
 
 - (AYFile *)unZipToPath:(AYFile *)file withPassword:(NSString *)password{
     if (!file) {
-        @throw [NSError errorWithDomain:@"AYFile" code:-1001 userInfo:@{
-                                                                        NSLocalizedDescriptionKey: @"参数不能为空"
-                                                                        }];
+        @throw [NSError errorWithDomain:@"AYFile"
+                                   code:-999
+                               userInfo:@{
+                                          NSLocalizedDescriptionKey: @"参数不能为空"
+                                          }];
     }
     
     if (file.isExists && file.isFile) {
-        @throw [NSError errorWithDomain:@"AYFile" code:-1001 userInfo:@{
-                                                                        NSLocalizedDescriptionKey: @"目标文件已存在",
-                                                                        AYFileErrorPathKey: file.path
-                                                                        }];
+        @throw [NSError errorWithDomain:@"AYFile"
+                                   code:NSFileWriteInvalidFileNameError
+                               userInfo:@{
+                                          NSLocalizedDescriptionKey: @"目标文件已存在",
+                                          AYFileErrorPathKey: file.path
+                                          }];
+    }
+    
+    if (!self.isExists) {
+        @throw [NSError errorWithDomain:@"AYFile"
+                                   code:NSFileNoSuchFileError
+                               userInfo:@{
+                                          NSLocalizedDescriptionKey: @"源文件不存在",
+                                          AYFileErrorPathKey: self.path
+                                          }];
     }
     
     if (!self.isFile || ![self.extension isEqualToString:@"zip"]) {
-        @throw [NSError errorWithDomain:@"AYFile" code:-1001 userInfo:@{
-                                                                        NSLocalizedDescriptionKey: @"是有效的压缩文件",
-                                                                        AYFileErrorPathKey: file.path
-                                                                        }];
+        @throw [NSError errorWithDomain:@"AYFile"
+                                   code:NSFileReadCorruptFileError
+                               userInfo:@{
+                                          NSLocalizedDescriptionKey: @"是有效的压缩文件",
+                                          AYFileErrorPathKey: file.path
+                                          }];
     }
     
     [file makeDirs];
@@ -476,7 +553,9 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
         BOOL res = [SSZipArchive unzipFileAtPath:self.path toDestination:file.path overwrite:YES password:password error:&error];
         return res ? file : nil;
     }@finally{
-        @throw error;
+        if (error) {
+            @throw error;
+        }
     }
 }
 @end

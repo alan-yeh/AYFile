@@ -48,6 +48,8 @@ FOUNDATION_EXPORT NSString *const AYFileErrorPathKey;
 - (AYFile *)child:(NSString *)name;/**< 获取子文件(夹) */
 - (nullable NSArray<AYFile *> *)children;/**< 获取当前目录下所有文件(夹). 注意: 耗时操作 */
 
+- (BOOL)isChildOf:(AYFile *)parent;/**< 判断是不是指定文件夹的子文件夹 */
+
 #pragma mark - 读取与写入
 - (BOOL)delete;/**< 删除文件(夹) */
 - (BOOL)clear;/**< 如果是文件夹, 则清空(不删除目录), 是文件, 则删除 */
@@ -75,6 +77,8 @@ FOUNDATION_EXPORT NSString *const AYFileErrorPathKey;
 @end
 
 @interface AYFile(Zip)
++ (AYFile *)zipFiles:(NSArray<AYFile *> *)files to:(AYFile *)path; /**< 将一系列文件压缩到指定文件 */
++ (AYFile *)zipFiles:(NSArray<AYFile *> *)files to:(AYFile *)path withPassword:(nullable NSString *)password;
 - (AYFile *)zip; /**< 压缩到当前路径，新建一个与压缩文件(夹)同名的zip文件 */
 - (AYFile *)zipWithPassword:(nullable NSString *)password; /**< 使用密码进行压缩文件 */
 - (AYFile *)zipToPath:(AYFile *)file; /**< 压缩到指定路径 */
