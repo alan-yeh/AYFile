@@ -255,7 +255,7 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
     
     NSMutableArray<AYFile *> *files = [NSMutableArray new];
     [directories enumerateObjectsUsingBlock:^(NSString * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
-        [files addObject:[[AYFile alloc] initWithPath:[_path stringByAppendingPathComponent:obj]]];
+        [files addObject:[[AYFile alloc] initWithPath:[self.path stringByAppendingPathComponent:obj]]];
     }];
     
     return files;
