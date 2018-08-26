@@ -43,12 +43,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
         _path = [path stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
         // 超出沙盒的路径不支持
         if (![_path isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:_path].location != NSNotFound) {
-            @throw [NSError errorWithDomain:@"AYFile"
-                                       code:NSFileReadNoPermissionError
-                                   userInfo:@{
-                                              NSLocalizedDescriptionKey: @"没有权限访问目录",
-                                              AYFileErrorPathKey: path
-                                              }];
+            @throw [NSException exceptionWithName:@"没有权限访问"
+                                           reason:@"无法访问超出沙盒以外的文件或目录"
+                                         userInfo:@{
+                                                    AYFileErrorPathKey: path
+                                                    }];
         }
         _manager = [NSFileManager new];
         [_manager changeCurrentDirectoryPath:path];
@@ -153,7 +152,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
         return [_manager attributesOfItemAtPath:_path error:&error];
     }@finally{
         if (error) {
-            @throw error;
+            @throw [NSException exceptionWithName:error.localizedDescription
+                                           reason:error.localizedFailureReason
+                                         userInfo:@{
+                                                    @"InternalError": error
+                                                    }];
         }
     }
 }
@@ -164,7 +167,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
         [_manager setAttributes:attributes ofItemAtPath:self.path error:nil];
     }@finally{
         if (error) {
-            @throw error;
+            @throw [NSException exceptionWithName:error.localizedDescription
+                                           reason:error.localizedFailureReason
+                                         userInfo:@{
+                                                    @"InternalError": error
+                                                    }];
         }
     }
 }
@@ -184,7 +191,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
             return [_manager removeItemAtPath:_path error:&error];
         }@finally{
             if (error) {
-                @throw error;
+                @throw [NSException exceptionWithName:error.localizedDescription
+                                               reason:error.localizedFailureReason
+                                             userInfo:@{
+                                                        @"InternalError": error
+                                                        }];
             }
         }
     }
@@ -203,7 +214,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
             return result;
         }@finally{
             if (error) {
-                @throw error;
+                @throw [NSException exceptionWithName:error.localizedDescription
+                                               reason:error.localizedFailureReason
+                                             userInfo:@{
+                                                        @"InternalError": error
+                                                        }];
             }
         }
     }
@@ -231,13 +246,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
     NSString *parentPath = [_path stringByDeletingLastPathComponent];
     //判断是否超出沙盒
     if (![parentPath isEqualToString:NSHomeDirectory()] && [NSHomeDirectory() rangeOfString:parentPath].location != NSNotFound) {
-        @throw [NSError errorWithDomain:@"AYFile"
-                                   code:NSFileReadNoPermissionError
-                               userInfo:@{
-                                          NSLocalizedDescriptionKey: @"没有权限访问目录",
-                                          AYFileErrorPathKey: parentPath
-                                          }];
-        return nil;
+        @throw [NSException exceptionWithName:@"没有权限访问"
+                                       reason:@"无法访问超出沙盒以外的文件或目录"
+                                     userInfo:@{
+                                                AYFileErrorPathKey: parentPath
+                                                }];
     }
     return [AYFile fileWithPath:parentPath];
 }
@@ -250,7 +263,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
     NSError *error = nil;
     NSArray<NSString *> *directories = [_manager contentsOfDirectoryAtPath:_path error:&error];
     if (error) {
-        @throw error;
+        @throw [NSException exceptionWithName:error.localizedDescription
+                                       reason:error.localizedFailureReason
+                                     userInfo:@{
+                                                @"InternalError": error
+                                                }];
     }
     
     NSMutableArray<AYFile *> *files = [NSMutableArray new];
@@ -278,7 +295,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
                                              error:&error];
         }@finally{
             if (error) {
-                @throw error;
+                @throw [NSException exceptionWithName:error.localizedDescription
+                                               reason:error.localizedFailureReason
+                                             userInfo:@{
+                                                        @"InternalError": error
+                                                        }];
             }
         }
     }
@@ -298,7 +319,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
         return [NSString stringWithContentsOfFile:self.path encoding:encoding error:&error];
     }@finally{
         if (error) {
-            @throw error;
+            @throw [NSException exceptionWithName:error.localizedDescription
+                                           reason:error.localizedFailureReason
+                                         userInfo:@{
+                                                    @"InternalError": error
+                                                    }];
         }
     }
 }
@@ -353,33 +378,26 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
 }
 
 - (BOOL)copyToPath:(AYFile *)newFile{
-    if (!newFile) {
-        @throw [NSError errorWithDomain:@"AYFile"
-                                   code:-999
-                               userInfo:@{
-                                          NSLocalizedDescriptionKey: @"参数不能为空"
-                                          }];
-    }
+    NSParameterAssert(newFile != nil);
     
     if ([self isEqualToFile:newFile]) {
         return YES;
     }
     
     if (!self.isExists) {
-        @throw [NSError errorWithDomain:@"AYFile"
-                                   code:NSFileNoSuchFileError
-                               userInfo:@{
-                                          NSLocalizedDescriptionKey: @"源文件不存在",
-                                          AYFileErrorPathKey: self.path
-                                          }];
+        @throw [NSException exceptionWithName:@"源文件不存在"
+                                       reason:@"源文件不存在"
+                                     userInfo:@{
+                                                AYFileErrorPathKey: self.path
+                                                }];
     }
     if ([newFile.parent isEqualToFile:[AYFile home]]) {
-        @throw [NSError errorWithDomain:@"AYFile"
-                                   code:NSFileWriteNoPermissionError
-                               userInfo:@{
-                                          NSLocalizedDescriptionKey: @"没有权限写入数据",
-                                          AYFileErrorPathKey: newFile.path
-                                          }];
+        
+        @throw [NSException exceptionWithName:@"没有权限访问"
+                                       reason:@"没有权限写入数据"
+                                     userInfo:@{
+                                                AYFileErrorPathKey: newFile.path
+                                                }];
     }
     
     [[newFile parent] makeDirs];
@@ -406,7 +424,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
             return [_manager copyItemAtPath:self.path toPath:newFile.path error:&error];
         }@finally{
             if (error) {
-                @throw error;
+                @throw [NSException exceptionWithName:error.localizedDescription
+                                               reason:error.localizedFailureReason
+                                             userInfo:@{
+                                                        @"InternalError": error
+                                                        }];
             }
         }
     }
@@ -447,11 +469,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
 
 + (AYFile *)zipFiles:(NSArray<AYFile *> *)files to:(AYFile *)path withPassword:(NSString *)password{
     if ([path isExists]) {
-        @throw [NSError errorWithDomain:@"AYFile"
-                                   code:NSFileWriteInvalidFileNameError
-                               userInfo:@{
-                                          NSLocalizedDescriptionKey: @"文件已存在"
-                                          }];
+        @throw [NSException exceptionWithName:@"文件已存在"
+                                       reason:@"目标路径已存在文件，无法在此路径生成压缩文件"
+                                     userInfo:@{
+                                                AYFileErrorPathKey: path.path
+                                                }];
     }
     // 压缩多个文件的时候，先创建一个容器，再将所有文件复制到容器下，最后进行压缩
     AYFile *zipContainer = nil;
@@ -511,39 +533,31 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
 }
 
 - (AYFile *)unZipToPath:(AYFile *)file withPassword:(NSString *)password{
-    if (!file) {
-        @throw [NSError errorWithDomain:@"AYFile"
-                                   code:-999
-                               userInfo:@{
-                                          NSLocalizedDescriptionKey: @"参数不能为空"
-                                          }];
-    }
+    NSParameterAssert([file isKindOfClass:[AYFile class]]);
     
     if (file.isExists && file.isFile) {
-        @throw [NSError errorWithDomain:@"AYFile"
-                                   code:NSFileWriteInvalidFileNameError
-                               userInfo:@{
-                                          NSLocalizedDescriptionKey: @"目标文件已存在",
-                                          AYFileErrorPathKey: file.path
-                                          }];
+        @throw [NSException exceptionWithName:@"文件已存在"
+                                       reason:@"目标路径已存在文件，无法在此路径解压文件"
+                                     userInfo:@{
+                                                AYFileErrorPathKey: file.path
+                                                }];
     }
     
     if (!self.isExists) {
-        @throw [NSError errorWithDomain:@"AYFile"
-                                   code:NSFileNoSuchFileError
-                               userInfo:@{
-                                          NSLocalizedDescriptionKey: @"源文件不存在",
-                                          AYFileErrorPathKey: self.path
-                                          }];
+        @throw [NSException exceptionWithName:@"文件不存在"
+                                       reason:@"源路径不存在，无法解压该文件"
+                                     userInfo:@{
+                                                AYFileErrorPathKey: self.path
+                                                }];
     }
     
     if (!self.isFile || ![self.extension isEqualToString:@"zip"]) {
-        @throw [NSError errorWithDomain:@"AYFile"
-                                   code:NSFileReadCorruptFileError
-                               userInfo:@{
-                                          NSLocalizedDescriptionKey: @"是有效的压缩文件",
-                                          AYFileErrorPathKey: file.path
-                                          }];
+        
+        @throw [NSException exceptionWithName:@"解压异常"
+                                       reason:@"源文件不是有效的压缩文件"
+                                     userInfo:@{
+                                                AYFileErrorPathKey: file.path
+                                                }];
     }
     
     [file makeDirs];
@@ -554,7 +568,11 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
         return res ? file : nil;
     }@finally{
         if (error) {
-            @throw error;
+            @throw [NSException exceptionWithName:error.localizedDescription
+                                           reason:error.localizedFailureReason
+                                         userInfo:@{
+                                                    @"InternalError": error
+                                                    }];
         }
     }
 }

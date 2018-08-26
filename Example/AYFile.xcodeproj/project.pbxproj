@@ -39,7 +39,7 @@
 /* Begin PBXFileReference section */
 		1C20F3F7C8EA700CA5BBCB36 /* Pods-AYFile_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AYFile_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AYFile_Example/Pods-AYFile_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		2CEBC08FDF6F01613AF63F8F /* Pods-AYFile_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-AYFile_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-AYFile_Tests/Pods-AYFile_Tests.debug.xcconfig"; sourceTree = "<group>"; };
-		3B4DA4D739974575CC4BE0E4 /* AYFile.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = AYFile.podspec; path = ../AYFile.podspec; sourceTree = "<group>"; };
+		3B4DA4D739974575CC4BE0E4 /* AYFile.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = AYFile.podspec; path = ../AYFile.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		5D004D711D418E7700E3096E /* Launch Screen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 		6003F58A195388D20070C39A /* AYFile_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AYFile_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6003F58D195388D20070C39A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -208,7 +208,6 @@
 				6003F587195388D20070C39A /* Frameworks */,
 				6003F588195388D20070C39A /* Resources */,
 				F476E9698F398F85E658E627 /* [CP] Embed Pods Frameworks */,
-				45F03D4D7A4597860D7D3B8A /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -227,8 +226,6 @@
 				6003F5AA195388D20070C39A /* Sources */,
 				6003F5AB195388D20070C39A /* Frameworks */,
 				6003F5AC195388D20070C39A /* Resources */,
-				F79936255C6C5BD3F40AAF36 /* [CP] Embed Pods Frameworks */,
-				89BA34DE13C99DB136946CCF /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -315,21 +312,6 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		45F03D4D7A4597860D7D3B8A /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AYFile_Example/Pods-AYFile_Example-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		4DDAED2F173F02FB96FAFE58 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -346,21 +328,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		89BA34DE13C99DB136946CCF /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AYFile_Tests/Pods-AYFile_Tests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		F476E9698F398F85E658E627 /* [CP] Embed Pods Frameworks */ = {
@@ -381,21 +348,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AYFile_Example/Pods-AYFile_Example-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		F79936255C6C5BD3F40AAF36 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AYFile_Tests/Pods-AYFile_Tests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
