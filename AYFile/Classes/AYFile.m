@@ -279,7 +279,10 @@ NSString *const AYFileErrorPathKey = @"AYFileErrorPathKey";
 }
 
 - (BOOL)isChildOf:(AYFile *)parent{
-    return ![parent.path isEqualToString:self.path] && [self.path hasPrefix:self.path];
+    NSString *validParentPath = [parent.path hasSuffix:@"/"] ? parent.path : [parent.path stringByAppendingString:@"/"];
+    NSString *validCurrentPath = [self.path hasSuffix:@"/"] ? self.path : [self.path stringByAppendingString:@"/"];
+    
+    return ![validParentPath isEqualToString:validCurrentPath] && [validCurrentPath hasPrefix:validParentPath];
 }
 
 #pragma mark - 读取与写入
