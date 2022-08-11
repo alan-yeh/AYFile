@@ -336,7 +336,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-AYFile_Example/Pods-AYFile_Example-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-AYFile_Example/Pods-AYFile_Example-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/AYFile/AYFile.framework",
 				"${BUILT_PRODUCTS_DIR}/SSZipArchive/SSZipArchive.framework",
 			);
@@ -347,7 +347,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-AYFile_Example/Pods-AYFile_Example-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-AYFile_Example/Pods-AYFile_Example-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */

@@ -1,6 +1,6 @@
 {
   "name": "AYFile",
-  "version": "2.1.0",
+  "version": "2.2.1",
   "summary": "File management",
   "homepage": "https://github.com/alan-yeh/AYFile",
   "license": {
@@ -12,7 +12,7 @@
   },
   "source": {
     "git": "https://github.com/alan-yeh/AYFile.git",
-    "tag": "2.1.0"
+    "tag": "2.2.1"
   },
   "platforms": {
     "ios": "6.0"

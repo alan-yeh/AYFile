@@ -1,13 +1,13 @@
 PODS:
-  - AYFile (2.2.0):
+  - AYFile (2.2.1):
     - SSZipArchive
-  - SSZipArchive (2.1.4)
+  - SSZipArchive (2.2.2)
 
 DEPENDENCIES:
   - AYFile (from `../`)
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs.git:
+  trunk:
     - SSZipArchive
 
 EXTERNAL SOURCES:
@@ -15,9 +15,9 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  AYFile: a92bfe825778e732f96425c7721a158f44c93ea3
-  SSZipArchive: 41455d4b8d2b6ab93990820b50dc697c2554a322
+  AYFile: 275792b0b21de87497e756586621375529c82e6b
+  SSZipArchive: fa16b8cc4cdeceb698e5e5d9f67e9558532fbf23
 
 PODFILE CHECKSUM: 54a1fe2a49003d00629dd6fbea38a04fbcc09017
 
-COCOAPODS: 1.5.3
+COCOAPODS: 1.11.3
